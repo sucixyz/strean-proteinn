@@ -1,107 +1,101 @@
 import streamlit as st
+import numpy as np
 
-def calculate_protein_requirement(weight, activity_level, gender, age):
-  # Rekomendasi dasar
-    multiplier = {
-        'Sedentary (tidak aktif)': 0.8,
-        'Moderate (cukup aktif)': 1.2,
-        'Active (sangat aktif)': 1.6
-    }
+# Fungsi untuk menghitung persamaan regresi linier dan koefisien korelasi
+def calculate_regression_equation(X, Y, var_name_x='x', var_name_y='y'):
+    n = len(X)
+    sum_x = np.sum(X)
+    sum_y = np.sum(Y)
+    sum_xy = np.sum(X * Y)
+    sum_x_squared = np.sum(X**2)
 
-    adjustment = 0
-    if gender == 'Perempuan' and age >= 60:
-        adjustment = -0.1
-    elif gender == 'Laki-laki' and age >= 60:
-        adjustment = 0.1
+    # Menghitung koefisien regresi
+    b = (n * sum_xy - sum_x * sum_y) / (n * sum_x_squared - sum_x**2)
+    a = (sum_y - b * sum_x) / n
 
-    return weight * (multiplier[activity_level] + adjustment)
+    # Menghitung koefisien korelasi
+    r = (n * sum_xy - sum_x * sum_y) / np.sqrt((n * sum_x_squared - sum_x**2) * (n * np.sum(Y**2) - np.sum(Y)**2))
 
+    equation = f'{var_name_y} = {a:.2f} + {b:.2f}{var_name_x}'
+    regression_info = {'equation': equation, 'intercept': a, 'slope': b, 'r_value': r}
+    return regression_info
 
-def show_food_recommendations():
-    st.markdown("🍽 Rekomendasi Makanan Tinggi Protein:")
-    st.markdown("- 🥩 Daging ayam tanpa kulit")
-    st.markdown("- 🐟 Ikan salmon atau tuna")
-    st.markdown("- 🥚 Telur rebus")
-    st.markdown("- 🧀 Tahu / Tempe")
-    st.markdown("- 🥛 Susu rendah lemak atau greek yogurt")
-    st.markdown("- 🥜 Kacang almond atau edamame")
-
-
+# Halaman aplikasi Streamlit
 def main():
-    st.set_page_config(page_title="Kalkulator Protein", layout="centered")
+    st.title('Penentuan Persamaan Regresi Linearitas')
 
-
-    # Background soft blue dan font
-    st.markdown("""
+    # CSS untuk mengubah warna latar belakang, sidebar, dan ukuran font
+    background_color = "#A60404"
+    font_size = "25px"  # Ukuran font untuk teks biasa
+    header_font_size = "40px"  # Ukuran font untuk header
+    subheader_font_size = "30px"  # Ukuran font untuk subheader
+    st.markdown(f"""
         <style>
-        @import url('https://images.app.goo.gl/Zsi2UoKxi7jobofH6https://images.app.goo.gl/Zsi2UoKxi7jobofH6');.stApp {
-
-            background-color: #d0e7f9;
-            font-family: 'Comic Neue', cursive;
-
-        }
-
-        h1, h2, h3, .stTextInput>div>div>input, .stSelectbox>div>div>div {
-            font-family: 'Comic Neue', cursive;
-        }
-
+        .stApp {{
+            background-color: {background_color} !important;
+            font-size: {font_size} !important;
+        }}
+        .st-bd {{
+            background-color: {background_color} !important;
+        }}
+        h1 {{
+            font-size: {header_font_size} !important;
+        }}
+        h2 {{
+            font-size: {subheader_font_size} !important;
+        }}
         </style>
-
-    """, unsafe_allow_html=True)
-
-
-    st.title('🍳 Kalkulator Kebutuhan Protein Harian 😸')
+        """, unsafe_allow_html=True)
 
 
-
-    menu = st.sidebar.selectbox("📋 Menu", ('Tentang Aplikasi', 'Kalkulator', 'Perkenalan Kelompok'))
-
-
+    # Menambahkan opsi baru di select box
+    menu = st.sidebar.selectbox("Menu", ('Tentang Aplikasi', 'Kalkulator', 'Perkenalan Kelompok'))
 
     if menu == 'Kalkulator':
+        st.write('Masukkan data X dan Y dalam bentuk tabel dengan dua kolom.')
 
-        st.subheader('✨ Hitung Protein Harian Anda di sini!')
+        # Input data X dan Y dari pengguna dalam bentuk tabel
+        data_input = st.text_area('Masukkan nilai X dan Y (pisahkan nilai X dan Y dengan koma, setiap pasangan nilai di baris baru):', height=150)
+        var_name_x = st.text_input('Masukkan nama variabel untuk X:', 'x').strip()
+        var_name_y = st.text_input('Masukkan nama variabel untuk Y:', 'y').strip()
 
-        age = st.number_input('📅 Masukkan umur Anda (tahun):', min_value=1, step=1)
-        gender = st.selectbox('🚻 Pilih jenis kelamin Anda:', ['Laki-laki', 'Perempuan'])
-        weight = st.number_input('⚖ Masukkan berat badan Anda (kg):', min_value=1.0, step=0.1)
-        activity_level = st.selectbox('🏃‍♀ Pilih tingkat aktivitas Anda:', [
+        if data_input:
+            data_lines = data_input.split('\n')
+            X = np.array([float(line.split(',')[0].strip()) for line in data_lines if line])
+            Y = np.array([float(line.split(',')[1].strip()) for line in data_lines if line])
 
-            'Sedentary (tidak aktif)', 
-            'Moderate (cukup aktif)', 
-            'Active (sangat aktif)'
+            # Menghitung persamaan regresi linier dan koefisien korelasi
+            regression_info = calculate_regression_equation(X, Y, var_name_x, var_name_y)
 
-        ])
+            # Menampilkan persamaan regresi linier, nilai slope (b), nilai intercept (a), dan nilai koefisien korelasi (r)
+            st.markdown('### Persamaan Regresi Linier:')
+            st.markdown(f'```{regression_info["equation"]}```', unsafe_allow_html=True)
 
+            st.markdown('### Nilai Slope (b):')
+            st.write(f'{regression_info["slope"]:.2f}')
 
-        if weight and age:
-            protein_needed = calculate_protein_requirement(weight, activity_level, gender, age)
-            st.success(f"🍗 Kebutuhan protein harian Anda adalah sekitar {protein_needed:.1f} gram per hari! 😋")
+            st.markdown('### Nilai Intercept (a):')
+            st.write(f'{regression_info["intercept"]:.2f}')
 
-
-            # Tampilkan animasi protein (GIF)
-            st.markdown('<img src="https://media.tenor.com/1mi8BRdrVjwAAAAC/egg-protein.gif" width="300">', unsafe_allow_html=True)
-
-
-            show_food_recommendations()
-
+            st.markdown('### Nilai Koefisien Korelasi (r):')
+            st.write(f'{regression_info["r_value"]:.4f}')
 
     elif menu == 'Perkenalan Kelompok':
-
-        st.subheader('👩‍🏫 Kelompok 5 (PMIP 1-E1)')
-        st.write('📚 Anggota:')
-        st.write('1. Chelsea Naila Darmayanti (2420581) 🐣')
-        st.write('2. Fadliansyah (2420499) 🐈')
-        st.write('3. Nabila Kirania (2420629) 🦩')
-        st.write('4. Sopian Darul Kamal (2420666) 🐿')
-        st.write('5. Suci Rahma Safitri (2420668) 🦭')
+        st.subheader('Kelompok 3 (1E-PMIP)')
+        st.write('Anggota:')
+        st.write('1. Dhika Nurafliansyah (2320517)')
+        st.write('2. Herni Khairunisa (2320528)')
+        st.write('3. Ibnu Rafif (2320530)')
+        st.write('4. Khaira Mutya Arrahman (2320533)')
+        st.write('5. Marsya Kaila Avridita Mulyono (2320535)')
 
     elif menu == 'Tentang Aplikasi':
-        st.subheader('🌈 Tentang Aplikasi')
-        st.markdown('<img src="https://media.tenor.com/1mi8BRdrVjwAAAAC/egg-protein.gif" width="500">', unsafe_allow_html=True)
-        st.write("Aplikasi ini membantu pengguna menghitung kebutuhan protein harian berdasarkan berat badan, usia, jenis kelamin, dan tingkat aktivitas. Cocok digunakan oleh siapa saja yang ingin menjaga pola makan sehat 💪🍱.")
+        st.subheader('Tentang Aplikasi')
+        st.markdown('<style>.my-gif { width: 500px; height: auto; }</style>', unsafe_allow_html=True)
+        st.markdown('<img src="https://lottiefiles.com/free-animation/dish-of-protein-foods-vvsS9mdShy" class="my-gif">', unsafe_allow_html=True)
+        st.write(' ')
+        st.write(' ')
+        st.write('Aplikasi penentu persamaan linear ini dirancang untuk memudahkan pengguna dalam melakukan perhitungan dalam penentuan persamaan linear dan mengurangi kesalahan penempatan data saat menghitung secara manual. Pengguna dapat memilih menu kalkulator untuk dapat menghitung persamaan regresi linear, nilai slope (b), nilai intersept (a), dan nilai koefisien regresi korelasi (r).')
 
-
-if _name_ == '_main_':
-    
-    main()**
+if __name__ == '__main__':
+    main()
