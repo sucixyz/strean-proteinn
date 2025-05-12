@@ -91,11 +91,17 @@ def main():
 
     elif menu == 'Tentang Aplikasi':
         st.subheader('Tentang Aplikasi')
-        st.markdown('<style>.my-gif { width: 500px; height: auto; }</style>', unsafe_allow_html=True)
-        st.markdown('video_file = open("protein-video.mp4", "rb") video_bytes = video_file.read() st.video(video_bytes)
         st.write(' ')
         st.write(' ')
         st.write('Aplikasi penentu persamaan linear ini dirancang untuk memudahkan pengguna dalam melakukan perhitungan dalam penentuan persamaan linear dan mengurangi kesalahan penempatan data saat menghitung secara manual. Pengguna dapat memilih menu kalkulator untuk dapat menghitung persamaan regresi linear, nilai slope (b), nilai intersept (a), dan nilai koefisien regresi korelasi (r).')
+
+def load_lottie_url(url:str):
+        r = requests.get(url)
+        if r.status_code != 200:
+            return None
+        return r.json()
+    lottie_animation_1 = 'https://lottie.host/4654a0ba-d76c-47f1-a8c0-0c2dd7a97f4a/gA9pTSpL2A.json = load_lottie_url(lottie_animation_1)
+    st_lottie(lottie_anime_json, key = 'hello')
 
 if __name__ == '__main__':
     main()
