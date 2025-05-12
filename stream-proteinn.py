@@ -92,7 +92,7 @@ def main():
     elif menu == 'Tentang Aplikasi':
         st.subheader('Tentang Aplikasi')
         st.markdown('<style>.my-gif { width: 500px; height: auto; }</style>', unsafe_allow_html=True)
-        st.markdown('video_url ="https://media.istockphoto.com/id/1727147942/id/video/kelompok-makanan-sehat-dengan-makronutrien.mp4?s=mp4-640x640-is&k=20&c=j3mz2GWwC58ehBK_Y44dRz3K3GlApcGQkIiIbvggZK4 " st.video', unsafe_allow_html=True)
+        st.markdown('video_file = open("protein-video.mp4", "rb") video_bytes = video_file.read() st.video(video_bytes)
         st.write(' ')
         st.write(' ')
         st.write('Aplikasi penentu persamaan linear ini dirancang untuk memudahkan pengguna dalam melakukan perhitungan dalam penentuan persamaan linear dan mengurangi kesalahan penempatan data saat menghitung secara manual. Pengguna dapat memilih menu kalkulator untuk dapat menghitung persamaan regresi linear, nilai slope (b), nilai intersept (a), dan nilai koefisien regresi korelasi (r).')
