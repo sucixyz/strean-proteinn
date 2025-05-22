@@ -66,7 +66,6 @@ def show_food_recommendations():
 def main():
     st.set_page_config(page_title="Kalkulator Protein", layout="centered")
 
-    # CSS disederhanakan untuk warna font hitam & styling dasar
     st.markdown("""
         <style>
         .stApp, html, body {
@@ -76,6 +75,11 @@ def main():
         }
         label, .stSidebar, .css-1v3fvcr, .css-1d391kg {
             color: black !important;
+        }
+        button[kind="secondary"] {
+            background-color: #7D5BA6 !important;
+            color: white !important;
+            font-weight: bold;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -101,23 +105,55 @@ def main():
             'Mempertahankan berat badan', 
             'Meningkatkan massa otot'
         ])
+        health_condition = st.selectbox('⚕ Apakah Anda memiliki kondisi medis tertentu?', [
+            'Tidak ada', 
+            'Diabetes', 
+            'Penyakit ginjal', 
+            'Penyakit hati',
+            'Lainnya'
+        ])
 
-        if st.button("✅ OK, Hitung Kebutuhan Protein"):
+        if weight > 0 and height > 0 and age > 0:
             total, dasar, tambahan = calculate_protein_requirement(weight, activity_level, gender, age, goal)
+
+            if health_condition == 'Penyakit ginjal':
+                total *= 0.7
+            elif health_condition == 'Penyakit hati':
+                total *= 0.8
+            elif health_condition == 'Diabetes':
+                total *= 1.0
 
             with st.expander("📊 Lihat Hasil Perhitungan Kebutuhan Protein Anda"):
                 st.success(f"🍗 Kebutuhan protein harian Anda untuk {goal.lower()} adalah sekitar {total:.1f} gram per hari! 😋")
+
                 st.markdown(f"""
                     <ul>
-                    <li>Berat badan: {weight} kg</li>
-                    <li>Tinggi badan: {height} cm</li>
-                    <li>Kebutuhan dasar: {dasar:.1f} gram</li>
-                    <li>Penyesuaian karena tujuan: {tambahan:+.1f} gram</li>
+                    <li><b>Berat badan:</b> {weight} kg</li>
+                    <li><b>Tinggi badan:</b> {height} cm</li>
+                    <li><b>Kebutuhan dasar:</b> {dasar:.1f} gram</li>
+                    <li><b>Penyesuaian tujuan:</b> {tambahan:+.1f} gram</li>
+                    <li><b>Kondisi medis:</b> {health_condition}</li>
                     </ul>
+                    <p><b>Keterangan:</b> Angka ini merupakan estimasi total kebutuhan protein Anda. Jika Anda memiliki penyakit kronis, sebaiknya konsultasikan dengan ahli gizi atau dokter terlebih dahulu.</p>
                 """, unsafe_allow_html=True)
 
                 show_avocado_image("avocado.webp")
                 autoplay_audio("snd_fragment_retrievewav-14728.mp3")
+
+                st.markdown("### 🍛 Rekomendasi Makanan Lokal + Kandungan Protein")
+                st.markdown("""
+                <table style="width:100%">
+                    <tr><th>Makanan</th><th>Kandungan Protein (per porsi)</th></tr>
+                    <tr><td>Telur rebus (1 butir)</td><td>6 gram</td></tr>
+                    <tr><td>Tempe goreng (2 potong)</td><td>10 gram</td></tr>
+                    <tr><td>Tahu kukus (2 potong)</td><td>8 gram</td></tr>
+                    <tr><td>Ikan kembung bakar (1 ekor)</td><td>20 gram</td></tr>
+                    <tr><td>Daging ayam panggang (100 gram)</td><td>30 gram</td></tr>
+                    <tr><td>Susu kedelai (1 gelas)</td><td>7 gram</td></tr>
+                    <tr><td>Kacang tanah sangrai (1 genggam)</td><td>8 gram</td></tr>
+                </table>
+                """, unsafe_allow_html=True)
+
                 show_food_recommendations()
 
     elif menu == 'Perkenalan Kelompok':
