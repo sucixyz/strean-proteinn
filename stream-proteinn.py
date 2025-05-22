@@ -1,22 +1,57 @@
 import streamlit as st
+import base64
 
-def calculate_protein_requirement(weight, activity_level, gender, age):
+# Fungsi untuk encode audio dan tampilkan autoplay
+def autoplay_audio(file_path: str):
+    with open(file_path, "rb") as f:
+        data = f.read()
+        b64 = base64.b64encode(data).decode()
+        md = f"""
+            <audio autoplay>
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+            </audio>
+        """
+        st.markdown(md, unsafe_allow_html=True)
+
+# Fungsi menampilkan gambar avocado
+def show_avocado_image(file_path: str):
+    with open(file_path, "rb") as f:
+        data = f.read()
+        b64 = base64.b64encode(data).decode()
+        md = f"""
+            <img src="data:image/webp;base64,{b64}" width="300">
+        """
+        st.markdown(md, unsafe_allow_html=True)
+
+# Fungsi perhitungan protein
+def calculate_protein_requirement(weight, activity_level, gender, age, goal):
     multiplier = {
         'Sedentary (tidak aktif)': 0.8,
         'Moderate (cukup aktif)': 1.2,
         'Active (sangat aktif)': 1.6
     }
 
-    adjustment = 0
+    gender_age_adj = 0
     if gender == 'Perempuan' and age >= 60:
-        adjustment = -0.1
+        gender_age_adj = -0.1
     elif gender == 'Laki-laki' and age >= 60:
-        adjustment = 0.1
+        gender_age_adj = 0.1
 
-    return weight * (multiplier[activity_level] + adjustment)
+    goal_adj = {
+        'Menurunkan berat badan': -0.1,
+        'Mempertahankan berat badan': 0,
+        'Meningkatkan massa otot': 0.2
+    }
 
+    dasar = weight * (multiplier[activity_level] + gender_age_adj)
+    tambahan = weight * goal_adj[goal]
+    total = dasar + tambahan
+
+    return total, dasar, tambahan
+
+# Rekomendasi makanan
 def show_food_recommendations():
-    st.markdown("🍽 **Rekomendasi Makanan Tinggi Protein:**")
+    st.markdown("🍽 *Rekomendasi Makanan Tinggi Protein:*")
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("- 🥩 Daging ayam tanpa kulit")
@@ -27,20 +62,20 @@ def show_food_recommendations():
         st.markdown("- 🥛 Susu rendah lemak / greek yogurt")
         st.markdown("- 🥜 Kacang almond / edamame")
 
+# Fungsi utama
 def main():
     st.set_page_config(page_title="Kalkulator Protein", layout="centered")
 
- # Gunakan background secara langsung menggunakan CSS
+    # CSS disederhanakan untuk warna font hitam & styling dasar
     st.markdown("""
         <style>
-        .stApp {
-            background: linear-gradient(to bottom, #FFD194, #FFCC70);  /* Latar belakang Gradien */
-            background-image: url('https://www.transparenttextures.com/patterns/cloudy.png');
-            background-size: cover; /* Pastikan pola tekstur menutupi seluruh layar */
-            height: 100vh; /* Menjaga latar belakang menutupi seluruh layar */
-        }
-    .css-ffhzg2 {  /* Selector untuk elemen halaman Streamlit */
+        .stApp, html, body {
+            background-color: #E6CCF5;
             font-family: 'Comic Sans MS', cursive;
+            color: black !important;
+        }
+        label, .stSidebar, .css-1v3fvcr, .css-1d391kg {
+            color: black !important;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -54,24 +89,36 @@ def main():
 
         age = st.number_input('📅 Masukkan umur Anda (tahun):', min_value=1, step=1)
         gender = st.selectbox('🚻 Pilih jenis kelamin Anda:', ['Laki-laki', 'Perempuan'])
+        height = st.number_input('📏 Masukkan tinggi badan Anda (cm):', min_value=50, step=1)
         weight = st.number_input('⚖ Masukkan berat badan Anda (kg):', min_value=1.0, step=0.1)
         activity_level = st.selectbox('🏃‍♀ Pilih tingkat aktivitas Anda:', [
             'Sedentary (tidak aktif)', 
             'Moderate (cukup aktif)', 
             'Active (sangat aktif)'
         ])
+        goal = st.selectbox('🎯 Apa tujuan Anda?', [
+            'Menurunkan berat badan', 
+            'Mempertahankan berat badan', 
+            'Meningkatkan massa otot'
+        ])
 
-        if weight and age:
-            protein_needed = calculate_protein_requirement(weight, activity_level, gender, age)
+        if st.button("✅ OK, Hitung Kebutuhan Protein"):
+            total, dasar, tambahan = calculate_protein_requirement(weight, activity_level, gender, age, goal)
 
-        if st.button("Hitung Kebutuhan Protein"): 
-            kebutuhan1 = hitung_protein_aktivitas(berat, aktivitas)
-            kebutuhan2 = hitung_kebutuhan_protein(umur, berat, jenis_kelamin)
-            
-            st.success(f"Kebutuhan protein berdasarkan aktivitas: {kebutuhan1} gram")
-            st.success(f"🍗 Kebutuhan protein harian Anda adalah sekitar *{protein_needed:.1f} gram* per hari! 😋")
-            st.markdown('<img src="https://media.tenor.com/1mi8BRdrVjwAAAAC/egg-protein.gif" width="300">', unsafe_allow_html=True)
-            show_food_recommendations()
+            with st.expander("📊 Lihat Hasil Perhitungan Kebutuhan Protein Anda"):
+                st.success(f"🍗 Kebutuhan protein harian Anda untuk {goal.lower()} adalah sekitar {total:.1f} gram per hari! 😋")
+                st.markdown(f"""
+                    <ul>
+                    <li>Berat badan: {weight} kg</li>
+                    <li>Tinggi badan: {height} cm</li>
+                    <li>Kebutuhan dasar: {dasar:.1f} gram</li>
+                    <li>Penyesuaian karena tujuan: {tambahan:+.1f} gram</li>
+                    </ul>
+                """, unsafe_allow_html=True)
+
+                show_avocado_image("avocado.webp")
+                autoplay_audio("snd_fragment_retrievewav-14728.mp3")
+                show_food_recommendations()
 
     elif menu == 'Perkenalan Kelompok':
         st.subheader('👩‍🏫 Kelompok 5 (PMIP 1-E1)')
@@ -85,7 +132,7 @@ def main():
     elif menu == 'Tentang Aplikasi':
         st.subheader('🌈 Tentang Aplikasi')
         st.image("foto patrik.gif", caption="Patrick makan demi protein!", use_container_width=True)
-        st.write("Aplikasi ini membantu pengguna menghitung kebutuhan protein harian berdasarkan berat badan, usia, jenis kelamin, dan tingkat aktivitas. Cocok digunakan oleh siapa saja yang ingin menjaga pola makan sehat 💪🍱.")
+        st.write("Aplikasi ini membantu pengguna menghitung kebutuhan protein harian berdasarkan berat badan, tinggi badan, usia, jenis kelamin, tingkat aktivitas, dan tujuan. Cocok digunakan oleh siapa saja yang ingin menjaga pola makan sehat 💪🍱.")
 
-if __name__ == '__main__':
+if _name_ == '_main_':
     main()
